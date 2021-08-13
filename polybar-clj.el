@@ -62,8 +62,6 @@
 
 (defvar pbclj--current-connection nil)
 
-(add-to-list 'buffer-list-update-hook #'pbclj--on-buffer-change)
-
 (defun pbclj--on-buffer-change ()
   "If current buffer has changed store new buffer and run `(pbclj-polybar-update)`."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
@@ -166,20 +164,24 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
              conn
              tooling)))
 
-(advice-add 'nrepl-send-request :around #'nrepl-send-request--pbclj-around)
+;; ---------------------------------------------------------
+;; Minor mode
+;; ---------------------------------------------------------
 
-;; ---------------------------------------------------------
-;; Utility functions
-;; ---------------------------------------------------------
-(defun pbclj-stop-all-spinners ()
-  "Stop all spinners."
-  (interactive)
+(defun pbclj-turn-on ()
+  (advice-add 'nrepl-send-request :around #'nrepl-send-request--pbclj-around)
+  (add-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
+  (add-hook 'cider-connected-hook #'pbclj-polybar-update)
+  (add-hook 'cider-disconnected-hook #'pbclj-polybar-update))
+
+(defun pbclj-turn-off ()
   (mapcar #'polybar-clojure-stop-spinner (pbclj--connections))
+  (advice-remove 'nrepl-send-request #'nrepl-send-request--pbclj-around)
+  (remove-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
+  (remove-hook 'cider-connected-hook #'pbclj-polybar-update)
+  (remove-hook 'cider-disconnected-hook #'pbclj-polybar-update)
   (pbclj-polybar-update))
 
-(defun pbclj-advice-remove ()
-  "Remove advice from nrepl-send-request."
-  (interactive)
-  (advice-remove 'nrepl-send-request #'nrepl-send-request--pbclj-around))
+(pbclj-turn-on)
 
 (provide 'polybar-clj)
