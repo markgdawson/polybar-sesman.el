@@ -1,4 +1,4 @@
-;;; polybar-clj.el --- Manage and navigate projects in Emacs easily -*- lexical-binding: t -*-
+;;; polybar-clj.el --- Display active CIDER connections in polybar -*- lexical-binding: t -*-
 
 ;; Copyright © 2021 Mark Dawson <markgdawson@gmail.com>
 
@@ -27,12 +27,8 @@
 
 ;;; Commentary:
 ;;
-;; This library provides easy project management and navigation.  The
-;; concept of a project is pretty basic - just a folder containing
-;; special file.  Currently git, mercurial and bazaar repos are
-;; considered projects by default.  If you want to mark a folder
-;; manually as a project just create an empty .projectile file in
-;; it.  See the README for more details.
+;; This library provides an interface to a polybar module which tracks
+;; the current CIDER connection and the connection status.
 ;;
 ;;; Code:
 
@@ -69,7 +65,7 @@
 (add-to-list 'buffer-list-update-hook #'pbclj--on-buffer-change)
 
 (defun pbclj--on-buffer-change ()
-  "If buffer has changed store new buffer and run `(pbclj-polybar-update)`."
+  "If current buffer has changed store new buffer and run `(pbclj-polybar-update)`."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
     (unless (equal cider-repl-buffer pbclj--current-connection)
       (setq pbclj--current-connection cider-repl-buffer)
