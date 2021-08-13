@@ -124,7 +124,7 @@
 (defun pbclj-default-project-name (buffer)
   "Pick the default project name for connection in BUFFER as the name of
 the session root directory."
-  (if-let (project (sesman-project 'CIDER))
+  (if-let (project (with-current-buffer buffer (sesman-project 'CIDER)))
       (file-name-nondirectory (directory-file-name (file-name-directory project)))
     (buffer-name buffer)))
 
