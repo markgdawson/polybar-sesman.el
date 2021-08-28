@@ -65,7 +65,8 @@
 (defun pbclj--on-buffer-change ()
   "If current buffer has changed store new buffer and run `(pbclj-polybar-update)`."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
-    (unless (equal cider-repl-buffer pbclj--current-connection)
+    (unless (or (equal cider-repl-buffer pbclj--current-connection)
+                 (window-minibuffer-p))
       (setq pbclj--current-connection cider-repl-buffer)
       (pbclj-polybar-update))))
 
