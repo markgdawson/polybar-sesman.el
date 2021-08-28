@@ -169,19 +169,21 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
 ;; ---------------------------------------------------------
 
 (defun pbclj-turn-on ()
+  "Turn on pbclj-mode."
   (advice-add 'nrepl-send-request :around #'nrepl-send-request--pbclj-around)
   (add-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
   (add-hook 'cider-connected-hook #'pbclj-polybar-update)
   (add-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (add-hook 'sesman-post-command-hook #'pbclj-polybar-update))
+  (add-hook 'sesman-post-command-hook #'pbclj--on-buffer-change))
 
 (defun pbclj-turn-off ()
+  "Turn off pbclj-mode."
   (mapcar #'polybar-clojure-stop-spinner (pbclj--connections))
   (advice-remove 'nrepl-send-request #'nrepl-send-request--pbclj-around)
   (remove-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
   (remove-hook 'cider-connected-hook #'pbclj-polybar-update)
   (remove-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (add-hook 'sesman-post-command-hook #'pbclj-polybar-update)
+  (remove-hook 'sesman-post-command-hook #'pbclj--on-buffer-change)
   (pbclj-polybar-update))
 
 (pbclj-turn-on)
