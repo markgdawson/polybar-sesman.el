@@ -33,6 +33,8 @@
 ;;; Code:
 
 (require 'dash)
+(require 'cider)
+(require 'sesman)
 
 ;; ---------------------------------------------------------
 ;; Store connections
