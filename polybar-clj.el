@@ -64,11 +64,13 @@
 
 (defvar pbclj--current-connection nil)
 
-(defun pbclj--on-buffer-change ()
-  "If current buffer has changed store new buffer and run `(pbclj-polybar-update)`."
+(defun pbclj--update-current ()
+  "Ensure the connection for the current buffer is up to date and call PBCLJ-POLYBAR-UPDATE on connection change.
+
+This is usually called as a hook following an event that could change the current connection. Does not record the minibuffer as a buffer change."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
     (unless (or (equal cider-repl-buffer pbclj--current-connection)
-                 (window-minibuffer-p))
+                (window-minibuffer-p))
       (setq pbclj--current-connection cider-repl-buffer)
       (pbclj-polybar-update))))
 
@@ -199,19 +201,21 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
 (defun pbclj-turn-on ()
   "Turn on pbclj-mode."
   (advice-add 'nrepl-send-request :around #'nrepl-send-request--pbclj-around)
-  (add-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
+  (add-hook 'buffer-list-update-hook #'pbclj--update-current)
   (add-hook 'cider-connected-hook #'pbclj-polybar-update)
   (add-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (add-hook 'sesman-post-command-hook #'pbclj--on-buffer-change))
+  (add-hook 'sesman-post-command-hook #'pbclj--update-current)
+  ;; update polybar when mode turned on
+  (pbclj--update-current))
 
 (defun pbclj-turn-off ()
   "Turn off pbclj-mode."
   (mapcar #'polybar-clojure-stop-spinner (pbclj--connections))
   (advice-remove 'nrepl-send-request #'nrepl-send-request--pbclj-around)
-  (remove-hook 'buffer-list-update-hook #'pbclj--on-buffer-change)
+  (remove-hook 'buffer-list-update-hook #'pbclj--update-current)
   (remove-hook 'cider-connected-hook #'pbclj-polybar-update)
   (remove-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (remove-hook 'sesman-post-command-hook #'pbclj--on-buffer-change)
+  (remove-hook 'sesman-post-command-hook #'pbclj--update-current)
   (pbclj-polybar-update))
 
 (pbclj-turn-on)
