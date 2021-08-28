@@ -65,9 +65,11 @@
 (defvar polybar-clj--current-connection nil)
 
 (defun polybar-clj--update-current ()
-  "Ensure the connection for the current buffer is up to date and call POLYBAR-CLJ-POLYBAR-UPDATE on connection change.
+  "Ensure the connection for the current buffer is up to date and call \
+POLYBAR-CLJ-POLYBAR-UPDATE on connection change.
 
-This is usually called as a hook following an event that could change the current connection. Does not record the minibuffer as a buffer change."
+This is usually called as a hook following an event that \
+could change the current connection.  Does not record the minibuffer as a buffer change."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
     (unless (or (equal cider-repl-buffer polybar-clj--current-connection)
                 (window-minibuffer-p))
@@ -127,8 +129,8 @@ This is usually called as a hook following an event that could change the curren
                polybar-clj-separator))
 
 (defun polybar-clj-default-project-name (buffer)
-  "Pick the default project name for connection in BUFFER as the name of
-the session root directory."
+  "Pick the default project name for connection in BUFFER \
+as the name ofcthe session root directory."
   (if-let (project (with-current-buffer buffer (sesman-project 'CIDER)))
       (file-name-nondirectory (directory-file-name (file-name-directory project)))
     (buffer-name buffer)))
