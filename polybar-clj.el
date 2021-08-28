@@ -218,6 +218,16 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
   (remove-hook 'sesman-post-command-hook #'pbclj--update-current)
   (pbclj-polybar-update))
 
-(pbclj-turn-on)
+;;;###autoload
+(define-minor-mode pbclj-mode
+  "Toggle pbclj-mode."
+  :lighter    " pbclj"
+  :init-value nil
+  :global     t
+  :group      'pbclj
+  (cond
+   (noninteractive (setq pbclj-mode nil))
+   (pbclj-mode (pbclj-turn-on))
+   (t (pbclj-turn-off))))
 
 (provide 'polybar-clj)
