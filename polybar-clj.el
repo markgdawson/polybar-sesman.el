@@ -40,93 +40,93 @@
 ;; Store connections
 ;; ---------------------------------------------------------
 
-(defvar pbclj-connection-states (make-hash-table)
+(defvar polybar-clj-connection-states (make-hash-table)
   "Hash table to store the busy state of connections.")
 
-(defvar pbclj-connection-aliases (make-hash-table)
+(defvar polybar-clj-connection-aliases (make-hash-table)
   "Hash table to store display strings for connections.")
 
-(defun pbclj-set-connection-busy (connection)
+(defun polybar-clj-set-connection-busy (connection)
   "Mark CONNECTION as busy."
-  (puthash connection t pbclj-connection-states))
+  (puthash connection t polybar-clj-connection-states))
 
-(defun pbclj-set-connection-idle (connection)
+(defun polybar-clj-set-connection-idle (connection)
   "Mark CONNECTION as idle."
-  (puthash connection nil pbclj-connection-states))
+  (puthash connection nil polybar-clj-connection-states))
 
-(defun pbclj-connection-busy-p (connection)
+(defun polybar-clj-connection-busy-p (connection)
   "Return non-nil if CONNECTION is marked as busy."
-  (gethash connection pbclj-connection-states))
+  (gethash connection polybar-clj-connection-states))
 
 ;; ---------------------------------------------------------
 ;; Store and update connection for current buffer
 ;; ---------------------------------------------------------
 
-(defvar pbclj--current-connection nil)
+(defvar polybar-clj--current-connection nil)
 
-(defun pbclj--update-current ()
-  "Ensure the connection for the current buffer is up to date and call PBCLJ-POLYBAR-UPDATE on connection change.
+(defun polybar-clj--update-current ()
+  "Ensure the connection for the current buffer is up to date and call POLYBAR-CLJ-POLYBAR-UPDATE on connection change.
 
 This is usually called as a hook following an event that could change the current connection. Does not record the minibuffer as a buffer change."
   (let ((cider-repl-buffer (cider-current-repl-buffer)))
-    (unless (or (equal cider-repl-buffer pbclj--current-connection)
+    (unless (or (equal cider-repl-buffer polybar-clj--current-connection)
                 (window-minibuffer-p))
-      (setq pbclj--current-connection cider-repl-buffer)
-      (pbclj-polybar-update))))
+      (setq polybar-clj--current-connection cider-repl-buffer)
+      (polybar-clj-polybar-update))))
 
-(defun pbclj--emphasize-if-current (connection string)
+(defun polybar-clj--emphasize-if-current (connection string)
   "Format STRING as current connection when CONNECTION is the current connection."
-  (if (pbclj--connection-is-current connection)
+  (if (polybar-clj--connection-is-current connection)
       (format "%%{F#839496}%s%%{F-}" string)
     (format "%%{F#}%s%%{F-}" string)))
 
 ;; ---------------------------------------------------------
 ;; Connection Display Strings
 ;; ---------------------------------------------------------
-(defcustom pbclj-busy-color "#d87e17"
+(defcustom polybar-clj-busy-color "#d87e17"
   "Colour to display when connection is busy.")
 
-(defcustom pbclj-idle-current-color "#839496"
+(defcustom polybar-clj-idle-current-color "#839496"
   "Colour to display when connection is current and idle.")
 
-(defcustom pbclj-idle-other-color "#4a4e4f"
+(defcustom polybar-clj-idle-other-color "#4a4e4f"
   "Colour to display when connection is not current and idle.")
 
-(defun pbclj--connection-is-current (connection)
+(defun polybar-clj--connection-is-current (connection)
   "Return non-nil if CONNECTION is the connection in the current buffer."
-  (equal pbclj--current-connection connection))
+  (equal polybar-clj--current-connection connection))
 
-(defun pbclj-connection-string (connection)
+(defun polybar-clj-connection-string (connection)
   "Format the display STRING for CONNECTION."
   (let* ((connection-name (buffer-name connection))
-         (color (cond ((pbclj-connection-busy-p connection) pbclj-busy-color)
-                      ((pbclj--connection-is-current connection) pbclj-idle-current-color)
-                      (pbclj-idle-other-color)))
+         (color (cond ((polybar-clj-connection-busy-p connection) polybar-clj-busy-color)
+                      ((polybar-clj--connection-is-current connection) polybar-clj-idle-current-color)
+                      (polybar-clj-idle-other-color)))
          (string (cond ((string-match "repvault-connect" connection-name) "RC")
                        ((string-match "repvault-backend" connection-name) "RVB")
                        ((string-match "repvault-test" connection-name) "RT")
                        ((string-match "repvault-graphql-gateway" connection-name) "RGG")
                        ((string-match "document-index-server" connection-name) "DIS")
-                       ((pbclj-default-project-name connection)))))
+                       ((polybar-clj-default-project-name connection)))))
     (format "%%{F%s}%s%%{F-}" color string)))
 
 ;; ---------------------------------------------------------
 ;; Status string printing
 ;; ---------------------------------------------------------
-(defcustom pbclj-separator "%{F#4a4e4f} | %{F-}"
+(defcustom polybar-clj-separator "%{F#4a4e4f} | %{F-}"
   "Separator between REPL instances.")
 
-(defun pbclj--connections ()
+(defun polybar-clj--connections ()
   "Return list of connections as passed to nrepl."
   (mapcar #'cadr (sesman-sessions 'CIDER)))
 
-(defun pbclj-status-string ()
+(defun polybar-clj-status-string ()
   "Return status string displayed by polybar."
-  (string-join (mapcar #'pbclj-connection-string
-                       (pbclj--connections))
-               pbclj-separator))
+  (string-join (mapcar #'polybar-clj-connection-string
+                       (polybar-clj--connections))
+               polybar-clj-separator))
 
-(defun pbclj-default-project-name (buffer)
+(defun polybar-clj-default-project-name (buffer)
   "Pick the default project name for connection in BUFFER as the name of
 the session root directory."
   (if-let (project (with-current-buffer buffer (sesman-project 'CIDER)))
@@ -137,26 +137,26 @@ the session root directory."
 ;; Polybar Connections
 ;; ---------------------------------------------------------
 
-(defun pbclj-polybar-update ()
+(defun polybar-clj-polybar-update ()
   "Forced polybar to update the cider component."
   (interactive)
   (mgd/polybar-send-hook "cider" 1))
 
 (defun polybar-clojure-start-spinner (connection)
   "Called when CONNECTION becomes busy."
-  (pbclj-set-connection-busy connection)
-  (pbclj-polybar-update))
+  (polybar-clj-set-connection-busy connection)
+  (polybar-clj-polybar-update))
 
 (defun polybar-clojure-stop-spinner (connection)
   "Called when CONNECTION becomes idle (may be called multiple times)."
-  (pbclj-set-connection-idle connection)
-  (pbclj-polybar-update))
+  (polybar-clj-set-connection-idle connection)
+  (polybar-clj-polybar-update))
 
 ;; ---------------------------------------------------------
 ;; nrepl integration
 ;; ---------------------------------------------------------
 
-(defun nrepl-send-request--pbclj-around (fn request callback connection &optional tooling)
+(defun nrepl-send-request--polybar-clj-around (fn request callback connection &optional tooling)
   "Around advice for wrapping nrepl-send-request.
 FN is the unwrapped nrepl-send-request function.
 REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-request."
@@ -173,23 +173,23 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
 ;; Swap sessions in this buffer
 ;; ---------------------------------------------------------
 
-(defun pbclj--next-sesman-session ()
+(defun polybar-clj--next-sesman-session ()
   "Get the next sesman session in cyclic order."
   (let ((sessions (sesman-sessions 'CIDER)))
     (cadr (-drop-while
            (lambda (session)
-             (not (equal pbclj--current-connection (cadr session))))
+             (not (equal polybar-clj--current-connection (cadr session))))
            (append sessions sessions)))))
 
-(defun pbclj-cycle-sessions-buffer ()
+(defun polybar-clj-cycle-sessions-buffer ()
   "Cycle through CIDER sessions for current buffer."
   (interactive)
-  (sesman-link-session 'CIDER (pbclj--next-sesman-session) 'buffer (current-buffer)))
+  (sesman-link-session 'CIDER (polybar-clj--next-sesman-session) 'buffer (current-buffer)))
 
-(defun pbclj-cycle-sessions-project ()
+(defun polybar-clj-cycle-sessions-project ()
   "Cycle through CIDER sessions for current projects."
   (interactive)
-  (let ((next-session (pbclj--next-sesman-session)))
+  (let ((next-session (polybar-clj--next-sesman-session)))
     ;; note that unlinking can change the current session/connection.
     (sesman-unlink-all-buffer)
     (sesman-link-session 'CIDER next-session 'project )))
@@ -198,36 +198,36 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
 ;; Minor mode
 ;; ---------------------------------------------------------
 
-(defun pbclj-turn-on ()
-  "Turn on pbclj-mode."
-  (advice-add 'nrepl-send-request :around #'nrepl-send-request--pbclj-around)
-  (add-hook 'buffer-list-update-hook #'pbclj--update-current)
-  (add-hook 'cider-connected-hook #'pbclj-polybar-update)
-  (add-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (add-hook 'sesman-post-command-hook #'pbclj--update-current)
+(defun polybar-clj-turn-on ()
+  "Turn on polybar-clj-mode."
+  (advice-add 'nrepl-send-request :around #'nrepl-send-request--polybar-clj-around)
+  (add-hook 'buffer-list-update-hook #'polybar-clj--update-current)
+  (add-hook 'cider-connected-hook #'polybar-clj-polybar-update)
+  (add-hook 'cider-disconnected-hook #'polybar-clj-polybar-update)
+  (add-hook 'sesman-post-command-hook #'polybar-clj--update-current)
   ;; update polybar when mode turned on
-  (pbclj--update-current))
+  (polybar-clj--update-current))
 
-(defun pbclj-turn-off ()
-  "Turn off pbclj-mode."
-  (mapcar #'polybar-clojure-stop-spinner (pbclj--connections))
-  (advice-remove 'nrepl-send-request #'nrepl-send-request--pbclj-around)
-  (remove-hook 'buffer-list-update-hook #'pbclj--update-current)
-  (remove-hook 'cider-connected-hook #'pbclj-polybar-update)
-  (remove-hook 'cider-disconnected-hook #'pbclj-polybar-update)
-  (remove-hook 'sesman-post-command-hook #'pbclj--update-current)
-  (pbclj-polybar-update))
+(defun polybar-clj-turn-off ()
+  "Turn off polybar-clj-mode."
+  (mapcar #'polybar-clojure-stop-spinner (polybar-clj--connections))
+  (advice-remove 'nrepl-send-request #'nrepl-send-request--polybar-clj-around)
+  (remove-hook 'buffer-list-update-hook #'polybar-clj--update-current)
+  (remove-hook 'cider-connected-hook #'polybar-clj-polybar-update)
+  (remove-hook 'cider-disconnected-hook #'polybar-clj-polybar-update)
+  (remove-hook 'sesman-post-command-hook #'polybar-clj--update-current)
+  (polybar-clj-polybar-update))
 
 ;;;###autoload
-(define-minor-mode pbclj-mode
-  "Toggle pbclj-mode."
-  :lighter    " pbclj"
+(define-minor-mode polybar-clj-mode
+  "Toggle polybar-clj-mode."
+  :lighter    " pb-clj"
   :init-value nil
   :global     t
-  :group      'pbclj
+  :group      'polybar-clj
   (cond
-   (noninteractive (setq pbclj-mode nil))
-   (pbclj-mode (pbclj-turn-on))
-   (t (pbclj-turn-off))))
+   (noninteractive (setq polybar-clj-mode nil))
+   (polybar-clj-mode (polybar-clj-turn-on))
+   (t (polybar-clj-turn-off))))
 
 (provide 'polybar-clj)
