@@ -166,6 +166,31 @@ REQUEST CALLBACK CONNECTION and TOOLING have the same meaning as nrepl-send-requ
              tooling)))
 
 ;; ---------------------------------------------------------
+;; Swap sessions in this buffer
+;; ---------------------------------------------------------
+
+(defun pbclj--next-sesman-session ()
+  "Get the next sesman session in cyclic order."
+  (let ((sessions (sesman-sessions 'CIDER)))
+    (cadr (-drop-while
+           (lambda (session)
+             (not (equal pbclj--current-connection (cadr session))))
+           (append sessions sessions)))))
+
+(defun pbclj-cycle-sessions-buffer ()
+  "Cycle through CIDER sessions for current buffer."
+  (interactive)
+  (sesman-link-session 'CIDER (pbclj--next-sesman-session) 'buffer (current-buffer)))
+
+(defun pbclj-cycle-sessions-project ()
+  "Cycle through CIDER sessions for current projects."
+  (interactive)
+  (let ((next-session (pbclj--next-sesman-session)))
+    ;; note that unlinking can change the current session/connection.
+    (sesman-unlink-all-buffer)
+    (sesman-link-session 'CIDER next-session 'project )))
+
+;; ---------------------------------------------------------
 ;; Minor mode
 ;; ---------------------------------------------------------
 
