@@ -36,14 +36,17 @@
 (require 'cider)
 (require 'sesman)
 
-(defcustom polybar-clj-busy-color "#d87e17"
-  "Colour to display when connection is busy.")
+(defcustom polybar-clj-color-not-current "#4a4e4f"
+  "Colour to display when connection is not used by the current buffer."
+  :type 'color)
 
-(defcustom polybar-clj-idle-current-color "#839496"
-  "Colour to display when connection is current and idle.")
+(defcustom polybar-clj-color-busy "#d87e17"
+  "Colour to display when connection is busy."
+  :type 'color)
 
-(defcustom polybar-clj-idle-other-color "#4a4e4f"
-  "Colour to display when connection is not current and idle.")
+(defcustom polybar-clj-color-current-idle "#839496"
+  "Colour to display when connection is current and idle."
+  :type 'color)
 
 ;; ---------------------------------------------------------
 ;; Store connections
@@ -132,9 +135,9 @@ for a given CONNECTION-NAME."
 
 (defun polybar-clj-connection-display-color (connection)
   "Return current display colour for CONNECTION."
-  (cond ((polybar-clj-connection-busy-p connection) polybar-clj-busy-color)
-        ((polybar-clj--connection-current-p connection) polybar-clj-idle-current-color)
-        (polybar-clj-idle-other-color)))
+  (cond ((polybar-clj-connection-busy-p connection) polybar-clj-color-busy)
+        ((polybar-clj--connection-current-p connection) polybar-clj-color-current-idle)
+        (polybar-clj-color-not-current)))
 
 (defcustom polybar-clj-connection-format-string "%%{F%s}%s%%{F-}"
   "Format string for polybar color and display name.")
