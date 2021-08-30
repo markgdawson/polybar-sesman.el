@@ -223,10 +223,10 @@ as the name of the sesman project root directory."
 ;; ---------------------------------------------------------
 
 (defun nrepl-send-request--polybar-clj-around (fn request callback connection-buffer &optional tooling)
-  "Around advice for wrapping nrepl-send-request. \
-FN is the unwrapped nrepl-send-request function. \
+  "Around advice for wrapping `nrepl-send-request`.  \
+FN is the unwrapped `nrepl-send-request` function.  \
 REQUEST CALLBACK CONNECTION-BUFFER and TOOLING have the same \
-meaning as nrepl-send-request."
+meaning as `nrepl-send-request`."
   (lexical-let ((callback-fn callback)
                 (conn (polybar-clj--connection-buffer->connection connection-buffer)))
     (polybar-clojure-start-spinner conn)
@@ -266,7 +266,7 @@ meaning as nrepl-send-request."
 ;; ---------------------------------------------------------
 
 (defun polybar-clj-turn-on ()
-  "Turn on polybar-clj-mode."
+  "Turn on polybar-clj mode."
   (advice-add 'nrepl-send-request :around #'nrepl-send-request--polybar-clj-around)
   (add-hook 'buffer-list-update-hook #'polybar-clj--update-current)
   (add-hook 'cider-connected-hook #'polybar-clj-polybar-update)
@@ -279,7 +279,7 @@ meaning as nrepl-send-request."
   (polybar-clj-polybar-update))
 
 (defun polybar-clj-turn-off ()
-  "Turn off polybar-clj-mode."
+  "Turn off polybar-clj mode."
   (mapcar #'polybar-clojure-stop-spinner (polybar-clj--connections))
   (advice-remove 'nrepl-send-request #'nrepl-send-request--polybar-clj-around)
   (remove-hook 'buffer-list-update-hook #'polybar-clj--update-current)
@@ -290,7 +290,7 @@ meaning as nrepl-send-request."
 
 ;;;###autoload
 (define-minor-mode polybar-clj-mode
-  "Toggle polybar-clj-mode."
+  "Toggle polybar-clj mode."
   :lighter    " pb-clj"
   :init-value nil
   :global     t
@@ -301,3 +301,5 @@ meaning as nrepl-send-request."
    (t (polybar-clj-turn-off))))
 
 (provide 'polybar-clj)
+
+;;; polybar-clj.el ends here
