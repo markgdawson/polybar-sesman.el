@@ -6,7 +6,7 @@
 ;; URL: https://github.com/markgdawson/polybar-clj-emacs
 ;; Keywords: project, convenience
 ;; Version: 0.0.1-snapshot
-;; Package-Requires: ((emacs "25.1") (dash "2.19.1") (cider "0.22.0"))
+;; Package-Requires: ((emacs "25.1") (dash "2.19.1") (cider "1.1.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -208,12 +208,12 @@ as the name of the sesman project root directory."
   (interactive)
   (start-process-shell-command "polybar-msg" nil polybar-clj-polybar-msg))
 
-(defun polybar-clojure-start-spinner (connection)
+(defun polybar-clj-start-spinner (connection)
   "Called when CONNECTION becomes busy."
   (polybar-clj-set-connection-busy connection)
   (polybar-clj-polybar-update))
 
-(defun polybar-clojure-stop-spinner (connection)
+(defun polybar-clj-stop-spinner (connection)
   "Called when CONNECTION becomes idle (may be called multiple times)."
   (polybar-clj-set-connection-idle connection)
   (polybar-clj-polybar-update))
@@ -222,17 +222,17 @@ as the name of the sesman project root directory."
 ;; nrepl integration
 ;; ---------------------------------------------------------
 
-(defun nrepl-send-request--polybar-clj-around (fn request callback connection-buffer &optional tooling)
+(defun polybar-clj--around-advice--nrepl-send-request (fn request callback connection-buffer &optional tooling)
   "Around advice for wrapping `nrepl-send-request`.  \
 FN is the unwrapped `nrepl-send-request` function.  \
 REQUEST CALLBACK CONNECTION-BUFFER and TOOLING have the same \
 meaning as `nrepl-send-request`."
   (lexical-let ((callback-fn callback)
                 (conn (polybar-clj--connection-buffer->connection connection-buffer)))
-    (polybar-clojure-start-spinner conn)
+    (polybar-clj-start-spinner conn)
     (funcall fn request (lambda (response)
                           (funcall callback-fn response)
-                          (polybar-clojure-stop-spinner conn))
+                          (polybar-clj-stop-spinner conn))
              connection-buffer
              tooling)))
 
@@ -267,7 +267,7 @@ meaning as `nrepl-send-request`."
 
 (defun polybar-clj-turn-on ()
   "Turn on polybar-clj mode."
-  (advice-add 'nrepl-send-request :around #'nrepl-send-request--polybar-clj-around)
+  (advice-add 'nrepl-send-request :around #'polybar-clj--around-advice--nrepl-send-request)
   (add-hook 'buffer-list-update-hook #'polybar-clj--update-current)
   (add-hook 'cider-connected-hook #'polybar-clj-polybar-update)
   (add-hook 'cider-disconnected-hook #'polybar-clj-polybar-update)
@@ -280,8 +280,8 @@ meaning as `nrepl-send-request`."
 
 (defun polybar-clj-turn-off ()
   "Turn off polybar-clj mode."
-  (mapcar #'polybar-clojure-stop-spinner (polybar-clj--connections))
-  (advice-remove 'nrepl-send-request #'nrepl-send-request--polybar-clj-around)
+  (mapcar #'polybar-clj-stop-spinner (polybar-clj--connections))
+  (advice-remove 'nrepl-send-request #'polybar-clj--around-advice--nrepl-send-request)
   (remove-hook 'buffer-list-update-hook #'polybar-clj--update-current)
   (remove-hook 'cider-connected-hook #'polybar-clj-polybar-update)
   (remove-hook 'cider-disconnected-hook #'polybar-clj-polybar-update)
