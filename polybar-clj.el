@@ -226,11 +226,10 @@ as the name of the sesman project root directory."
 FN is the unwrapped `nrepl-send-request` function.  \
 REQUEST CALLBACK CONNECTION-BUFFER and TOOLING have the same \
 meaning as `nrepl-send-request`."
-  (lexical-let ((callback-fn callback)
-                (conn (polybar-clj--connection-buffer->connection connection-buffer)))
+  (let ((conn (polybar-clj--connection-buffer->connection connection-buffer)))
     (polybar-clj-start-spinner conn)
     (funcall fn request (lambda (response)
-                          (funcall callback-fn response)
+                          (funcall callback response)
                           (polybar-clj-stop-spinner conn))
              connection-buffer
              tooling)))
