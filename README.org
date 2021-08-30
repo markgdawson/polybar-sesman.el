@@ -1,19 +1,22 @@
-* Polybar-clj
+* Polybar-sesman
 
-  This creates a polybar module showing a list of active CIDER sessions denoted by potentially abbreviated strings. The current target session as well as the busy status of a session is denoted by colour.
+  This allows creating a polybar module showing a list of active sesman sessions denoted by potentially abbreviated strings. In particular this is useful with CIDER and Clojure repls,
+  which use sesman under the hood.
 
-  The purpose of this is to see at a glance which repl connections the current buffer is sending evaluations to, and see quickly the status of long-running
-  evaluations without switching to the repl buffer.
+  The polybar module can show all sessions, with the current target session and the busy status of a session denoted by colour.
+
+  The purpose of this is to see at a glance which repl connections the current buffer is sending evaluations to, and see quickly the busy status of a repl session
+  without the need to switch to the repl buffer.
 * Configuring Emacs
-If you're using ~use-package~ installation of polybar-clj can be done with.
+If you're using ~use-package~ installation of polybar-sesman can be done with.
 #+begin_src emacs-lisp
-  (use-package polybar-clj
+  (use-package polybar-sesman
     :defer nil
     :straight
-    (polybar-clj-emacs :type git
+    (polybar-sesman-emacs :type git
                        :host github
-                       :repo "markgdawson/polybar-clj-emacs")
-    :config (polybar-clj-mode 1))
+                       :repo "markgdawson/polybar-sesman.el")
+    :config (polybar-sesman-mode 1))
 #+end_src
 
 In order for polybar to communicate with the current Emacs through emacsclient
@@ -25,52 +28,56 @@ you'll also need to ensure that ~server-start~ is called somewhere in your ~.ema
 
 * Configuring polybar
 #+begin_src
-    [module/cider-clj]
+    [module/sesman-clj]
     type = custom/ipc
-    hook-0 = emacsclient -e "(polybar-clj-status-string)" | sed -e 's/^"//' -e 's/"$//'
+    hook-0 = emacsclient -e "(polybar-sesman-status-string)" | sed -e 's/^"//' -e 's/"$//'
     initial = 1
 #+end_src
 
-Note that the polybar-clj emacs module module must be called ~cider-clj~ by default and hook should be 0. You can change this by customizing ~polybar-clj-polybar-msg~.
+Note that the polybar-sesman emacs module module must be called ~sesman-clj~ by default and hook should be 0. You can change this by customizing ~polybar-sesman-polybar-msg~.
 
-Then include ~polybar-clj~ in the bar, typically by adding to module-left, module-right or module-center.
+Then include ~polybar-sesman~ in the bar, typically by adding to module-left, module-right or module-center.
 
 For example:
 #+begin_src
   modules-right = cider vol wifi cpu battery1
 #+end_src
 
+* Connection systems
+  A list of connection systems can be set in the variable ~polybar-sesman-sesman-systems~.
+
+  By default the only system available is CIDER.
 * Connection names
 By default the connection display names are taken from the folder containing the Clojure project.
 
-You can change this behaviour setting the variable ~polybar-clj-connection-name-patterns~.
+You can change this behaviour setting the variable ~polybar-sesman-connection-name-patterns~.
 This is a list of cons cells in which the first value is a regular expression to match
 against the buffer name of the repl connection buffer, and the second value defines
 how to change the name when the regular expression matches. This can be either a string,
 in which case this is the name of the connection, or a function which takes a connection
-object (as returned by in the connection list ~polybar-clj--connection~) and returns
+object (as returned by in the connection list ~polybar-sesman--connection~) and returns
 a connection name.
 
 Only the first regular expression in the list which matches is used.
 
-Typically ~polybar-clj-connection-name-patterns~ should have a catchall entry
+Typically ~polybar-sesman-connection-name-patterns~ should have a catchall entry
 as the last entry which calls a function to compute a default project name, for exmample
-~polybar-clj-default-project-name~.
+~polybar-sesman-default-project-name~.
 
 For example:
 #+begin_src emacs-lisp
-  (setq polybar-clj-connection-name-patterns
+  (setq polybar-sesman-connection-name-patterns
         '(("some-connect" . "SC")
           ("some-backend" . "SBE")
           ("some-frontend" . "SFE")
-          (".*" . polybar-clj-default-project-name)))
+          (".*" . polybar-sesman-default-project-name)))
 #+end_src
 
 This will denote, for example, the repl buffer =some-folder/some-connect:localhost:38091=
 as =RC=.
 
-Calling ~(polybar-clj-polybar-update)~ will update the display, and may be useful for
-seeing the effect of ~polybar-clj-connection-name-patterns~ on the currently active connections.
+Calling ~(polybar-sesman-polybar-update)~ will update the display, and may be useful for
+seeing the effect of ~polybar-sesman-connection-name-patterns~ on the currently active connections.
 
 * Colours and Theming
 
@@ -80,27 +87,27 @@ seeing the effect of ~polybar-clj-connection-name-patterns~ on the currently act
   The three states a repl connection can have are:
 
     1) The repl connection is not the one used by the current buffer. The colour for this is defined in
-        ~polybar-clj-color-not-current~.
+        ~polybar-sesman-color-not-current~.
     2) The repl connection is the one used for the current buffer. This is the repl where evaluations are sent currently.
-       The colour for this is defined by ~polybar-clj-color-current-idle~.
+       The colour for this is defined by ~polybar-sesman-color-current-idle~.
 
-    3) The repl connection is currently busy (i.e. something is currently being evaluated). The colour for this is defined in ~polybar-clj-color-busy~.
+    3) The repl connection is currently busy (i.e. something is currently being evaluated). The colour for this is defined in ~polybar-sesman-color-busy~.
 
 Note that we (currently) do not differentiate between busy/current and busy/not-current. I've not found this to be a particularly useful distinction.
 
-You can change the separator character between REPL connections by setting ~polybar-clj-separator-character~ and the
-separator character colour with ~polybar-clj-separator-color~.
+You can change the separator character between REPL connections by setting ~polybar-sesman-separator-character~ and the
+separator character colour with ~polybar-sesman-separator-color~.
 
-After changes, it may be useful to call ~(polybar-clj-polybar-update)~ to
+After changes, it may be useful to call ~(polybar-sesman-polybar-update)~ to
 see the changes in polybar.
 
 * Utility Functions
   No functions are bound to keys by this package, however you may wish to bind the following functions:
 
-~polybar-clj-cycle-sessions-project~
+~polybar-sesman-cycle-sessions-project~
 - cycle the CIDER connection associated with the current project
 
-~polybar-clj-cycle-sessions-buffer~
+~polybar-sesman-cycle-sessions-buffer~
 - cycle through the CIDER connections associated with the current buffer
 
 Note that buffer connections take precedence over project connections. However,
