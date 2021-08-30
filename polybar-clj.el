@@ -6,7 +6,7 @@
 ;; URL: https://github.com/markgdawson/polybar-clj-emacs
 ;; Keywords: project, convenience
 ;; Version: 0.0.1-snapshot
-;; Package-Requires: ((emacs "25.1") dash cider sesman)
+;; Package-Requires: ((emacs "25.1") (dash "2.19.1") (cider "0.22.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
