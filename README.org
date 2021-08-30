@@ -1,0 +1,109 @@
+* Polybar-clj
+
+  This creates a polybar module showing a list of active CIDER sessions denoted by potentially abbreviated strings. The session active in the current buffer is
+  denoted by colour as well as the active state of the repl connection.
+
+  The purpose of this is to see at a glance which repl connections the current buffer is sending evaluations to, and see quickly the status of long-running
+  evaluations without switching to the repl buffer.
+* Configuring Emacs
+If you're using ~use-package~ installation of polybar-clj can be done with.
+#+begin_src emacs-lisp
+  (use-package polybar-clj
+    :defer nil
+    :straight
+    (polybar-clj-emacs :type git
+                       :host github
+                       :repo "markgdawson/polybar-clj-emacs")
+    :config (polybar-clj-mode 1))
+#+end_src
+
+In order for polybar to communicate with the current Emacs through emacsclient
+you'll also need to ensure that ~server-start~ is called somewhere in your ~.emacs~.
+
+#+begin_src emacs-lisp
+    (server-start)
+#+end_src
+
+* Configuring polybar
+#+begin_src
+    [module/cider-clj]
+    type = custom/ipc
+    hook-0 = emacsclient -e "(polybar-clj-status-string)" | sed -e 's/^"//' -e 's/"$//'
+    initial = 1
+#+end_src
+
+Note that the polybar-clj emacs module module must be called ~cider-clj~ by default and hook should be 0. You can change this by customizing ~polybar-clj-polybar-msg~.
+
+Then include ~polybar-clj~ in the bar, typically by adding to module-left, module-right or module-center.
+
+For example:
+#+begin_src
+  modules-right = cider vol wifi cpu battery1
+#+end_src
+
+* Connection names
+By default the connection display names are taken from the folder containing the Clojure project.
+
+You can change this behaviour setting the variable ~polybar-clj-connection-name-patterns~.
+This is a list of cons cells in which the first value is a regular expression to match
+against the buffer name of the repl connection buffer, and the second value defines
+how to change the name when the regular expression matches. This can be either a string,
+in which case this is the name of the connection, or a function which takes a connection
+object (as returned by in the connection list ~polybar-clj--connection~) and returns
+a connection name.
+
+Only the first regular expression in the list which matches is used.
+
+Typically ~polybar-clj-connection-name-patterns~ should have a catchall entry
+as the last entry which calls a function to compute a default project name, for exmample
+~polybar-clj-default-project-name~.
+
+For example:
+#+begin_src emacs-lisp
+  (setq polybar-clj-connection-name-patterns
+        '(("some-connect" . "SC")
+          ("some-backend" . "SBE")
+          ("some-frontend" . "SFE")
+          (".*" . polybar-clj-default-project-name)))
+#+end_src
+
+This will denote, for example, the repl buffer =some-folder/some-connect:localhost:38091=
+as =RC=.
+
+Calling ~(polybar-clj-polybar-update)~ will update the display, and may be useful for
+seeing the effect of ~polybar-clj-connection-name-patterns~ on the currently active connections.
+
+* Colours and Theming
+
+  You'll likely want to change the colours of text to suit your polybar theme. This is done in the elisp code currently,
+  but if anyone knows how to reference colours defined in the polybar config file, please let me know.
+
+  The three states a repl connection can have are:
+
+    1) The repl connection is not the one used by the current buffer. The colour for this is defined in
+        ~polybar-clj-color-not-current~.
+    2) The repl connection is the one used for the current buffer. This is the repl where evaluations are sent currently.
+       The colour for this is defined by ~polybar-clj-color-current-idle~.
+
+    3) The repl connection is currently busy (i.e. something is currently being evaluated). The colour for this is defined in ~polybar-clj-color-busy~.
+
+Note that we (currently) do not differentiate between busy/current and busy/not-current. I've not found this to be a particularly useful distinction.
+
+You can change the separator character between REPL connections by setting ~polybar-clj-separator-character~ and the
+separator character colour with ~polybar-clj-separator-color~.
+
+After changes, it may be useful to call ~(polybar-clj-polybar-update)~ to
+see the changes in polybar.
+
+* Utility Functions
+  No functions are bound to keys by this package, however you may wish to bind the following functions:
+
+~polybar-clj-cycle-sessions-project~
+- cycle the CIDER connection associated with the current project
+
+~polybar-clj-cycle-sessions-buffer~
+- cycle through the CIDER connections associated with the current buffer
+
+Note that buffer connections take precedence over project connections. However,
+cycling a project will break any buffer links for the current buffer
+(but not for other buffers which may have links).
