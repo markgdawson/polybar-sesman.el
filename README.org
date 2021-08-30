@@ -1,7 +1,6 @@
 * Polybar-clj
 
-  This creates a polybar module showing a list of active CIDER sessions denoted by potentially abbreviated strings. The session active in the current buffer is
-  denoted by colour as well as the active state of the repl connection.
+  This creates a polybar module showing a list of active CIDER sessions denoted by potentially abbreviated strings. The current target session as well as the busy status of a session is denoted by colour.
 
   The purpose of this is to see at a glance which repl connections the current buffer is sending evaluations to, and see quickly the status of long-running
   evaluations without switching to the repl buffer.
