@@ -252,12 +252,19 @@ meaning as `nrepl-send-request`."
   (interactive)
   (sesman-link-session 'CIDER (polybar-clj--next-sesman-session) 'buffer (current-buffer)))
 
+(defun polybar-clj--sesman-unlink-all-context ()
+  "Unlink all sesman sessions in current context."
+  (interactive)
+  (mapc #'sesman--unlink
+        (sesman-current-links 'CIDER))
+  (run-hooks 'sesman-post-command-hook))
+
 (defun polybar-clj-cycle-sessions-project ()
   "Cycle through CIDER sessions for current projects."
   (interactive)
   (let ((next-session (polybar-clj--next-sesman-session)))
     ;; note that unlinking can change the current session/connection.
-    (sesman-unlink-all-buffer)
+    (polybar-clj--sesman-unlink-all-context)
     (sesman-link-session 'CIDER next-session 'project )))
 
 ;; ---------------------------------------------------------
