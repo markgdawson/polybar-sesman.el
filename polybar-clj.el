@@ -83,8 +83,7 @@ If CDR is nil then return the project directory name."
   "Return the polybar separator."
   (format "%%{F%s} %s %%{F-}"
           polybar-clj-separator-color
-          polybar-clj-separator-character)
-  "Separator between REPL instances.")
+          polybar-clj-separator-character))
 
 ;; ---------------------------------------------------------
 ;; Store connections
@@ -113,8 +112,8 @@ If CDR is nil then return the project directory name."
 
 (defun polybar-clj--connection-buffer->connection (connection-buffer)
   "Return sesman connection for CONNECTION-BUFFER."
-  (-find (-lambda ((conn-name buffer))
-           (equal buffer connection-buffer))
+  (-find (lambda (connection)
+           (equal (cadr connection) connection-buffer))
          (polybar-clj--connections)))
 
 (defun polybar-clj--connection->connection-buffer (connection)
@@ -124,7 +123,7 @@ If CDR is nil then return the project directory name."
 (defun polybar-clj--current-buffer-connection ()
   "Return connection for the current buffer."
   (polybar-clj--connection-buffer->connection
-   (cider-current-repl-buffer)))
+   (cider-current-repl)))
 
 (defun polybar-clj--update-current ()
   "Ensure the connection for the current buffer is up to date and call \
@@ -149,8 +148,8 @@ could change the current connection.  Does not record the minibuffer as a buffer
 (defun polybar-clj--connection-name-find-matcher (connection-name)
   "Find the first machine pattern in POLYBAR-CLJ-CONNECTION-NAME-PATTERNS  \
 for a given CONNECTION-NAME."
-  (-find (-lambda ((pattern-re . action))
-           (string-match-p pattern-re connection-name))
+  (-find (-lambda (connection)
+           (string-match-p (car connection) connection-name))
          polybar-clj-connection-name-patterns))
 
 (defun polybar-clj-connection-display-name (connection)
@@ -280,7 +279,7 @@ meaning as `nrepl-send-request`."
 
 (defun polybar-clj-turn-off ()
   "Turn off polybar-clj mode."
-  (mapcar #'polybar-clj-stop-spinner (polybar-clj--connections))
+  (mapc #'polybar-clj-stop-spinner (polybar-clj--connections))
   (advice-remove 'nrepl-send-request #'polybar-clj--around-advice--nrepl-send-request)
   (remove-hook 'buffer-list-update-hook #'polybar-clj--update-current)
   (remove-hook 'cider-connected-hook #'polybar-clj-polybar-update)
