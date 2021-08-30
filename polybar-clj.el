@@ -36,17 +36,55 @@
 (require 'cider)
 (require 'sesman)
 
-(defcustom polybar-clj-color-not-current "#4a4e4f"
+(defgroup polybar-clj nil
+  "Manage polybar-clj customization options."
+  :prefix "polybar-clj-"
+  :group 'polybar-clj)
+
+(defcustom polybar-clj-color-not-current
+  "#4a4e4f"
   "Colour to display when connection is not used by the current buffer."
   :type 'color)
 
-(defcustom polybar-clj-color-busy "#d87e17"
+(defcustom polybar-clj-color-busy
+  "#d87e17"
   "Colour to display when connection is busy."
   :type 'color)
 
 (defcustom polybar-clj-color-current-idle "#839496"
   "Colour to display when connection is current and idle."
   :type 'color)
+
+(defcustom polybar-clj-connection-format-string "%%{F%s}%s%%{F-}"
+  "Format string for polybar color and display name."
+  :type 'string)
+
+(defcustom polybar-clj-polybar-msg "polybar-msg hook cider-clj 1"
+  "The message to send to polybar to request display update."
+  :type 'string)
+
+(defcustom polybar-clj-separator-character "|"
+  "Separator character between repl instances."
+  :type 'character)
+
+(defcustom polybar-clj-separator-color "#4a4e4f"
+  "Colour of separator character between repl instances."
+  :type 'color)
+
+(defcustom polybar-clj-connection-name-patterns
+  '((".*" . polybar-clj-default-project-name))
+  "Alist of regular expression and replacement to apply to the connection name.
+
+If CDR is nil then return the project directory name."
+  :type '(alist :key-type string)
+  :options '((".*" . polybar-clj-default-project-name)))
+
+(defun polybar-clj-separator ()
+  "Return the polybar separator."
+  (format "%%{F%s} %s %%{F-}"
+          polybar-clj-separator-color
+          polybar-clj-separator-character)
+  "Separator between REPL instances.")
 
 ;; ---------------------------------------------------------
 ;; Store connections
@@ -108,17 +146,6 @@ could change the current connection.  Does not record the minibuffer as a buffer
   "Return non-nil if CONNECTION is the connection in the current buffer."
   (equal polybar-clj--current-connection connection))
 
-(defcustom polybar-clj-connection-name-patterns
-  '(("repvault-connect" . "RC")
-   ("repvault-backend" . "RVB")
-   ("repvault-tests" . "RT")
-   ("repvault-graphql-gateway" . "RGG")
-   ("document-index-server" . "DIS")
-   (".*" . polybar-clj-default-project-name))
-  "Alist of regular expression and replacement to apply to the connection name.
-
-If CDR is nil then return the project directory name.")
-
 (defun polybar-clj--connection-name-find-matcher (connection-name)
   "Find the first machine pattern in POLYBAR-CLJ-CONNECTION-NAME-PATTERNS  \
 for a given CONNECTION-NAME."
@@ -138,10 +165,6 @@ for a given CONNECTION-NAME."
   (cond ((polybar-clj-connection-busy-p connection) polybar-clj-color-busy)
         ((polybar-clj--connection-current-p connection) polybar-clj-color-current-idle)
         (polybar-clj-color-not-current)))
-
-(defcustom polybar-clj-connection-format-string "%%{F%s}%s%%{F-}"
-  "Format string for polybar color and display name.")
-
 (defun polybar-clj-connection-string (connection)
   "Format the display STRING for CONNECTION."
   (format polybar-clj-connection-format-string
@@ -151,8 +174,6 @@ for a given CONNECTION-NAME."
 ;; ---------------------------------------------------------
 ;; Status string printing
 ;; ---------------------------------------------------------
-(defcustom polybar-clj-separator "%{F#4a4e4f} | %{F-}"
-  "Separator between REPL instances.")
 
 (defun polybar-clj--connections ()
   "Return list of connections."
@@ -163,7 +184,7 @@ for a given CONNECTION-NAME."
   (if polybar-clj-mode
       (string-join (mapcar #'polybar-clj-connection-string
                            (polybar-clj--connections))
-                   polybar-clj-separator)
+                   (polybar-clj-separator))
     "polybar-clj-mode disabled"))
 
 (defun polybar-clj--project-dir (connection)
@@ -185,7 +206,7 @@ as the name of the sesman project root directory."
 (defun polybar-clj-polybar-update ()
   "Force polybar to update the cider component."
   (interactive)
-  (start-process-shell-command "polybar-msg" nil "polybar-msg hook cider-clj 1"))
+  (start-process-shell-command "polybar-msg" nil polybar-clj-polybar-msg))
 
 (defun polybar-clojure-start-spinner (connection)
   "Called when CONNECTION becomes busy."
