@@ -107,7 +107,8 @@ If CDR is nil then return the project directory name."
 ;; Store and update connection for current buffer
 ;; ---------------------------------------------------------
 
-(defvar polybar-sesman--current-connection nil)
+(defvar polybar-sesman--current-connection nil
+  "Tracks the connection that the current repl is connected to and nil if not connected.")
 
 (defun polybar-sesman--connection-buffer->connection (connection-buffer)
   "Return sesman connection for CONNECTION-BUFFER."
