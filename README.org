@@ -8,14 +8,9 @@
   The purpose of this is to see at a glance which repl connections the current buffer is sending evaluations to, and see quickly the busy status of a repl session
   without the need to switch to the repl buffer.
 * Configuring Emacs
-If you're using ~use-package~ installation of polybar-sesman can be done with.
+=polybar-sesman= can be installed from MELPA. If you're using ~use-package~ installation is done via:
 #+begin_src emacs-lisp
   (use-package polybar-sesman
-    :defer nil
-    :straight
-    (polybar-sesman-emacs :type git
-                       :host github
-                       :repo "markgdawson/polybar-sesman.el")
     :config (polybar-sesman-mode 1))
 #+end_src
 
